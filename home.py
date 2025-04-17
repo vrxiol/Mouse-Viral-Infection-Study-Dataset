@@ -4,17 +4,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.neighbors import KNeighborsClassifier
 
+# ต้องอยู่บรรทัดแรก ๆ ก่อนคำสั่งอื่น
+st.set_page_config(page_title="หน้าแรกของฉัน", layout="centered")
+
+# คำสั่ง Streamlit อื่น ๆ
+st.title("ยินดีต้อนรับสู่เว็บของฉัน")
+st.write("นี่คือตัวอย่างหน้าเว็บที่เขียนด้วย Streamlit")
 
 st.title("ชุดข้อมูลการศึกษาการติดเชื้อไวรัสในหนู")
 st.header("ข้อมูลการแสดงออกของยีนและการตอบสนองภูมิคุ้มกันจากการศึกษาการติดเชื้อไวรัสในหนูทดลอง")
 
 st.image('./img/1.jpg')
 st.subheader("Dog")
-
-
-# ชื่อหน้า
-st.set_page_config(page_title="หน้าแรกของฉัน", layout="centered")
-
 
 
 html_7 = """
