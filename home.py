@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix, classification_report
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -16,7 +19,7 @@ st.set_page_config(
 st.sidebar.title("เมนูหลัก")
 page = st.sidebar.radio(
     "เลือกหน้า:",
-    ["Overview", "Expression Trends", "PCA & Clustering", "Download Data", "About"]
+    ["Overview", "Expression Trends", "PCA & Clustering", "Infection Prediction", "Download Data", "About"]
 )
 
 # --- Load Data with Caching ---
@@ -26,9 +29,8 @@ def load_mouse_data(path):
 
 df = load_mouse_data("./data/mouse.csv")
 
-# Identify numeric columns automatically
-df_numeric = df.select_dtypes(include=[np.number])
-numeric_cols = df_numeric.columns.tolist()
+# Identify numeric columns
+numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
 # --- Overview Page ---
 if page == "Overview":
@@ -37,71 +39,90 @@ if page == "Overview":
         f"- จำนวนตัวอย่าง: **{df.shape[0]}** แถว  \n"
         f"- จำนวนคอลัมน์: **{df.shape[1]}**"
     )
-
     st.subheader("ตัวอย่างข้อมูล")
     st.dataframe(df.head(5), use_container_width=True)
-
     st.subheader("สถิติพื้นฐานของตัวแปรเชิงตัวเลข")
-    st.dataframe(df_numeric.describe(), use_container_width=True)
-
-    st.subheader("จำนวนค่าที่หายไปในแต่ละคอลัมน์")
+    st.dataframe(df[numeric_cols].describe(), use_container_width=True)
+    st.subheader("Missing Values ต่อคอลัมน์")
     st.bar_chart(df.isnull().sum())
 
 # --- Expression Trends Page ---
 elif page == "Expression Trends":
-    st.title("การเปลี่ยนแปลงของการแสดงออกของยีน")
-    st.markdown("เลือกตัวแปรเชิงตัวเลขเพื่อดูการเปลี่ยนแปลงตามลำดับตัวอย่าง")
-
+    st.title("แนวโน้มการแสดงออกของยีน")
     selected_cols = st.multiselect(
-        "เลือกคอลัมน์:", numeric_cols, default=numeric_cols[:3]
+        "เลือกตัวแปรเชิงตัวเลข:", numeric_cols, default=numeric_cols[:3]
     )
     if selected_cols:
-        trend_df = df_numeric[selected_cols]
-        st.line_chart(trend_df)
+        st.line_chart(df[selected_cols])
     else:
-        st.write("โปรดเลือกคอลัมน์อย่างน้อยหนึ่งตัว")
+        st.info("โปรดเลือกตัวแปรอย่างน้อยหนึ่งตัว")
 
 # --- PCA & Clustering Page ---
 elif page == "PCA & Clustering":
-    st.title("PCA และการจัดกลุ่ม (K-Means)")
-
+    st.title("PCA & K-Means Clustering")
+    data_numeric = df[numeric_cols].fillna(0)
     # PCA
-    st.subheader("PCA: ลดมิติลงเหลือ 2 มิติ")
     pca = PCA(n_components=2)
-    pca_result = pca.fit_transform(df_numeric.fillna(0))
-    pca_df = pd.DataFrame(pca_result, columns=['PC1', 'PC2'])
-
-    # Clustering parameters
-    st.subheader("K-Means Clustering")
-    n_clusters = st.slider("จำนวนกลุ่ม (clusters)", 2, 10, 4)
+    pcs = pca.fit_transform(data_numeric)
+    pca_df = pd.DataFrame(pcs, columns=['PC1', 'PC2'])
+    # K-Means
+    n_clusters = st.slider("จำนวนคลัสเตอร์:", 2, 8, 4)
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-    clusters = kmeans.fit_predict(df_numeric.fillna(0))
-    pca_df['Cluster'] = clusters.astype(str)
-
-    # Plot PCA with clusters
+    pca_df['Cluster'] = kmeans.fit_predict(data_numeric).astype(str)
     fig, ax = plt.subplots()
-    for cluster in sorted(pca_df['Cluster'].unique()):
-        mask = pca_df['Cluster'] == cluster
-        ax.scatter(
-            pca_df.loc[mask, 'PC1'], pca_df.loc[mask, 'PC2'],
-            label=f"Cluster {cluster}", alpha=0.7
-        )
+    for cl in sorted(pca_df['Cluster'].unique()):
+        subset = pca_df[pca_df['Cluster']==cl]
+        ax.scatter(subset['PC1'], subset['PC2'], label=f"Cluster {cl}", alpha=0.6)
     ax.set_xlabel('PC1')
     ax.set_ylabel('PC2')
-    ax.legend(title='Cluster')
+    ax.legend()
     st.pyplot(fig)
-
-    # Explained variance
     st.markdown(
-        f"**Explained variance ratio:** PC1 = {pca.explained_variance_ratio_[0]:.2f}, "
-        f"PC2 = {pca.explained_variance_ratio_[1]:.2f}"
+        f"Explained Variance: PC1={pca.explained_variance_ratio_[0]:.2f}, PC2={pca.explained_variance_ratio_[1]:.2f}"
     )
+
+# --- Infection Prediction Page ---
+elif page == "Infection Prediction":
+    st.title("ทำนายการติดเชื้อไวรัส")
+    st.markdown("ใช้ Logistic Regression ทำนายว่าหนูตัวอย่างติดเชื้อหรือไม่ จากตัวแปรเชิงตัวเลข")
+    # Ensure target exists
+    if 'infected' not in df.columns:
+        st.error("ไม่มีคอลัมน์ 'infected' ในชุดข้อมูล กรุณาเพิ่มคอลัมน์ label ก่อน")
+    else:
+        # Prepare data
+        X = df[numeric_cols].fillna(0)
+        y = df['infected']
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+        # Train model
+        model = LogisticRegression(max_iter=1000)
+        model.fit(X_train, y_train)
+        # Evaluation
+        y_pred = model.predict(X_test)
+        st.subheader("Performance Metrics")
+        cm = confusion_matrix(y_test, y_pred)
+        st.write("Confusion Matrix:")
+        st.write(cm)
+        st.write("Classification Report:")
+        st.text(classification_report(y_test, y_pred))
+        # User input for prediction
+        st.subheader("ทำนายตัวอย่างใหม่")
+        user_inputs = {}
+        cols_container = st.container()
+        for col in numeric_cols:
+            user_inputs[col] = cols_container.number_input(
+                f"{col}",
+                float(df[col].min()), float(df[col].max()), float(df[col].median())
+            )
+        if st.button("🔍 ทำนายผลติดเชื้อ"):
+            input_df = pd.DataFrame([user_inputs])
+            pred = model.predict(input_df)[0]
+            proba = model.predict_proba(input_df)[0][1]
+            label = 'ติดเชื้อ' if pred==1 else 'ไม่ติดเชื้อ'
+            st.success(f"ผลการทำนาย: **{label}** (Probability of infection: {proba:.2%})")
 
 # --- Download Data Page ---
 elif page == "Download Data":
     st.title("ดาวน์โหลดชุดข้อมูล")
-    st.markdown("สามารถดาวน์โหลดชุดข้อมูล Mouse Viral Infection ได้ด้านล่าง")
-    st.dataframe(df, use_container_width=True)
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="📥 ดาวน์โหลด CSV",
@@ -116,12 +137,14 @@ else:
     st.markdown(
         """
         **Mouse Viral Infection Study App**  
-        พัฒนาโดย: Your Name  
-        เทคโนโลยี: Streamlit, pandas, numpy, scikit-learn, matplotlib  
-        เวอร์ชัน: 1.2.0
+        - พัฒนาโดย: Your Name  
+        - ชุดข้อมูล: mouse.csv  
+        - เทคโนโลยี: Streamlit, pandas, numpy, scikit-learn, matplotlib  
+        - เวอร์ชัน: 1.3.0
         """
     )
 
 # --- Footer ---
 st.sidebar.markdown("---")
-st.sidebar.write("Developed with 💙 by Your Name")
+st.sidebar.write("Developed with 💙 อนุสรณ์ เถาะปีนาม")
+
