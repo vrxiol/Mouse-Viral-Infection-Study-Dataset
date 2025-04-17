@@ -2,76 +2,82 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.neighbors import KNeighborsClassifier
 
+# ตั้งค่าหน้าเว็บ
+st.set_page_config(
+    page_title="Mouse Viral Infection Study", 
+    page_icon="🦠",
+    layout="wide"
+)
 
-st.title("ชุดข้อมูลการศึกษาการติดเชื้อไวรัสในหนู")
-st.header("ข้อมูลการแสดงออกของยีนและการตอบสนองภูมิคุ้มกันจากการศึกษาการติดเชื้อไวรัสในหนูทดลอง")
+# Sidebar Navigation
+st.sidebar.title("เมนูหลัก")
+page = st.sidebar.radio(
+    "เลือกการทำงาน:",
+    ["ดูข้อมูล (Data View)", "สรุปสถิติ (Summary)", "กราฟ (Visualization)"]
+)
 
-st.image('./img/1.jpg')
-st.subheader("Dog")
+# โหลดข้อมูล พร้อม caching
+@st.cache_data
+def load_data(path):
+    df = pd.read_csv(path)
+    return df
 
+df = load_data("./data/mouse.csv")
 
-html_7 = """
-<div style="background-color:#EC7063;padding:15px;border-radius:15px 15px 15px 15px;border-style:'solid';border-color:black">
-<center><h5>สถิติข้อมูลดอกไม้</h5></center>
-</div>
-"""
+# 1. Data View
+if page == "ดูข้อมูล (Data View)":
+    st.header("ดูข้อมูลเต็ม (First & Last Rows)")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Top 10")
+        st.dataframe(df.head(10), use_container_width=True)
+    with col2:
+        st.subheader("Bottom 10")
+        st.dataframe(df.tail(10), use_container_width=True)
 
-st.markdown(html_7, unsafe_allow_html=True)
-st.markdown("")
-st.markdown("")
+# 2. Summary
+elif page == "สรุปสถิติ (Summary)":
+    st.header("สรุปสถิติพื้นฐาน")
+    st.markdown("- **ขนาดข้อมูล:** {} แถว, {} คอลัมน์".format(df.shape[0], df.shape[1]))
+    st.markdown("- **รายการคอลัมน์:** {}".format(list(df.columns)))
+    
+    st.subheader("สถิติเชิงตัวเลข")
+    st.dataframe(df.describe(), use_container_width=True)
+    
+    st.subheader("จำนวนค่าที่หายไป (Missing Values)")
+    st.dataframe(df.isnull().sum(), use_container_width=True)
 
-st.subheader("ข้อมูลส่วนสุดท้าย 10 แถว")
-dt = pd.read_csv("./data/mouse.csv")
-st.write(dt.head(10))
-st.subheader("ข้อมูลส่วนสุดท้าย 10 แถว")
-st.write(dt.tail(10))
-
-dt1 = dt['petallength'].sum()
-dt2 = dt['petalwidth'].sum()
-dt3 = dt['sepallength'].sum()
-dt4 = dt['sepalwidth'].sum()
-
-dx = [dt1, dt2, dt3, dt4]
-dx2 = pd.DataFrame(dx,index=["d1","d2","d3","d4"])
-
-if st.button("แสดงการจินตทัศน์ข้อมูล"):
-   st.bar_chart(dx2)
-   st.button("ไม่แสดงข้อมูล")
+# 3. Visualization
 else:
-    st.write("ไม่แสดงข้อมูล")
+    st.header("การวิเคราะห์ด้วยกราฟ")
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    cat_cols = df.select_dtypes(exclude=[np.number]).columns.tolist()
 
-html_8 = """
-<div style="background-color:#EC7063;padding:15px;border-radius:15px 15px 15px 15px;border-style:'solid';border-color:black">
-<center><h5>ทำนายข้อมูล</h5></center>
-</div>
-"""
+    chart_type = st.selectbox("ประเภทกราฟ:", ["Bar Chart", "Histogram", "Scatter Plot"])
 
-st.markdown(html_8, unsafe_allow_html=True)
-st.markdown("")
+    if chart_type == "Bar Chart":
+        col = st.selectbox("เลือกคอลัมน์ (Categorical):", cat_cols)
+        counts = df[col].value_counts()
+        st.bar_chart(counts)
 
-pt_len = st.slider("กรุณาเลือกข้อมูล petal.length")
-pt_wd = st.slider("กรุณาเลือกข้อมูล petal.width")
+    elif chart_type == "Histogram":
+        col = st.selectbox("เลือกคอลัมน์ (Numeric):", numeric_cols)
+        fig, ax = plt.subplots()
+        ax.hist(df[col].dropna(), bins=20)
+        ax.set_xlabel(col)
+        ax.set_ylabel("Frequency")
+        st.pyplot(fig)
 
-sp_len = st.number_input("กรุณาเลือกข้อมูล sepal.length")
-sp_wd = st.number_input("กรุณาเลือกข้อมูล sepal.width")
+    else:  # Scatter Plot
+        x_col = st.selectbox("X-axis:", numeric_cols, index=0)
+        y_col = st.selectbox("Y-axis:", numeric_cols, index=1)
+        fig, ax = plt.subplots()
+        ax.scatter(df[x_col], df[y_col])
+        ax.set_xlabel(x_col)
+        ax.set_ylabel(y_col)
+        st.pyplot(fig)
 
-if st.button("ทำนายผล"):
-    #st.write("ทำนาย")
-   dt = pd.read_csv("./data/iris-3.csv") 
-   X = dt.drop('variety', axis=1)
-   y = dt.variety   
-   Knn_model = KNeighborsClassifier(n_neighbors=3)
-   Knn_model.fit(X, y)  
-   x_input = np.array([[pt_len, pt_wd, sp_len, sp_wd]])
-   st.write(Knn_model.predict(x_input))
-   out=Knn_model.predict(x_input)
-   if out[0] == 'Setosa':
-    st.image("./ing/iris1.jpg")
-   elif out[0] == 'Versicolor':       
-    st.image("./ing/iris2.jpg")
-   else:
-    st.image("./ing/iris3.jpg")
-else:
-    st.write("ไม่ทำนาย")
+# Footer
+st.sidebar.markdown("---")
+st.sidebar.write("Developed with 💙 by Your Name")
