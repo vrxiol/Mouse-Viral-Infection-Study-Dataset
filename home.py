@@ -15,24 +15,7 @@ st.subheader("Dog")
 # ชื่อหน้า
 st.set_page_config(page_title="หน้าแรกของฉัน", layout="centered")
 
-# หัวเรื่อง
-st.title("ยินดีต้อนรับสู่เว็บของฉัน")
 
-# เนื้อหา
-st.write("นี่คือตัวอย่างหน้าเว็บที่เขียนด้วย Streamlit")
-
-# เพิ่ม sidebar
-st.sidebar.title("เมนูด้านข้าง")
-st.sidebar.markdown("เลือกสิ่งที่คุณต้องการ")
-
-# ตัวอย่าง input
-name = st.text_input("กรอกชื่อของคุณ")
-if name:
-    st.success(f"สวัสดี {name}!")
-
-# ปุ่มกด
-if st.button("กดฉันสิ"):
-    st.balloons()
 
 html_7 = """
 <div style="background-color:#EC7063;padding:15px;border-radius:15px 15px 15px 15px;border-style:'solid';border-color:black">
