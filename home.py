@@ -7,23 +7,22 @@ from sklearn.cluster import KMeans
 
 # --- Page Configuration ---
 st.set_page_config(
-    page_title="Mouse Viral Infection Study", 
-    page_icon="🦠", 
+    page_title="Mouse Viral Infection Study",
+    page_icon="🦠",
     layout="wide"
 )
 
 # --- Sidebar Navigation ---
 st.sidebar.title("เมนูหลัก")
 page = st.sidebar.radio(
-    "เลือกหน้า:", 
+    "เลือกหน้า:",
     ["Overview", "Expression Trends", "PCA & Clustering", "Download Data", "About"]
 )
 
 # --- Load Data with Caching ---
 @st.cache_data
 def load_mouse_data(path):
-    df = pd.read_csv(path)
-    return df
+    return pd.read_csv(path)
 
 df = load_mouse_data("./data/mouse.csv")
 
@@ -35,16 +34,16 @@ numeric_cols = df_numeric.columns.tolist()
 if page == "Overview":
     st.title("ภาพรวมชุดข้อมูล Mouse Viral Infection")
     st.markdown(
-        "- จำนวนตัวอย่าง: **{}** แถว  ".format(df.shape[0]) +
-        "- จำนวนคอลัมน์: **{}**".format(df.shape[1])
+        f"- จำนวนตัวอย่าง: **{df.shape[0]}** แถว  \n"
+        f"- จำนวนคอลัมน์: **{df.shape[1]}**"
     )
-    
+
     st.subheader("ตัวอย่างข้อมูล")
     st.dataframe(df.head(5), use_container_width=True)
-    
+
     st.subheader("สถิติพื้นฐานของตัวแปรเชิงตัวเลข")
     st.dataframe(df_numeric.describe(), use_container_width=True)
-    
+
     st.subheader("จำนวนค่าที่หายไปในแต่ละคอลัมน์")
     st.bar_chart(df.isnull().sum())
 
@@ -52,7 +51,7 @@ if page == "Overview":
 elif page == "Expression Trends":
     st.title("การเปลี่ยนแปลงของการแสดงออกของยีน")
     st.markdown("เลือกตัวแปรเชิงตัวเลขเพื่อดูการเปลี่ยนแปลงตามลำดับตัวอย่าง")
-    
+
     selected_cols = st.multiselect(
         "เลือกคอลัมน์:", numeric_cols, default=numeric_cols[:3]
     )
@@ -65,33 +64,33 @@ elif page == "Expression Trends":
 # --- PCA & Clustering Page ---
 elif page == "PCA & Clustering":
     st.title("PCA และการจัดกลุ่ม (K-Means)")
-    
+
     # PCA
     st.subheader("PCA: ลดมิติลงเหลือ 2 มิติ")
     pca = PCA(n_components=2)
     pca_result = pca.fit_transform(df_numeric.fillna(0))
     pca_df = pd.DataFrame(pca_result, columns=['PC1', 'PC2'])
-    
+
     # Clustering parameters
     st.subheader("K-Means Clustering")
     n_clusters = st.slider("จำนวนกลุ่ม (clusters)", 2, 10, 4)
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
     clusters = kmeans.fit_predict(df_numeric.fillna(0))
     pca_df['Cluster'] = clusters.astype(str)
-    
+
     # Plot PCA with clusters
     fig, ax = plt.subplots()
     for cluster in sorted(pca_df['Cluster'].unique()):
         mask = pca_df['Cluster'] == cluster
         ax.scatter(
-            pca_df.loc[mask, 'PC1'], pca_df.loc[mask, 'PC2'], 
+            pca_df.loc[mask, 'PC1'], pca_df.loc[mask, 'PC2'],
             label=f"Cluster {cluster}", alpha=0.7
         )
     ax.set_xlabel('PC1')
     ax.set_ylabel('PC2')
     ax.legend(title='Cluster')
     st.pyplot(fig)
-    
+
     # Explained variance
     st.markdown(
         f"**Explained variance ratio:** PC1 = {pca.explained_variance_ratio_[0]:.2f}, "
@@ -115,12 +114,12 @@ elif page == "Download Data":
 else:
     st.title("เกี่ยวกับแอปพลิเคชัน")
     st.markdown(
-        ""
+        """
         **Mouse Viral Infection Study App**  
         พัฒนาโดย: Your Name  
         เทคโนโลยี: Streamlit, pandas, numpy, scikit-learn, matplotlib  
         เวอร์ชัน: 1.2.0
-        ""
+        """
     )
 
 # --- Footer ---
