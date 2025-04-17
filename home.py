@@ -23,7 +23,7 @@ st.markdown("")
 st.markdown("")
 
 st.subheader("ข้อมูลส่วนสุดท้าย 10 แถว")
-dt = pd.read_csv("./data/iris-3.csv")
+dt = pd.read_csv("./data/mouse")
 st.write(dt.head(10))
 st.subheader("ข้อมูลส่วนสุดท้าย 10 แถว")
 st.write(dt.tail(10))
