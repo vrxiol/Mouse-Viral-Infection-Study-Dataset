@@ -50,9 +50,10 @@ if page == "Overview":
         st.image('./img/mouse_sample2.jpg', caption='Mouse Sample 2', use_column_width=True)
 
     st.markdown(
-    f"""- จำนวนตัวอย่าง: **{df.shape[0]}** แถว  
-- จำนวนคอลัมน์: **{df.shape[1]}**"""
-)
+        f"- จำนวนตัวอย่าง: **{df.shape[0]}** แถว  
+"
+        f"- จำนวนคอลัมน์: **{df.shape[1]}**"
+    )
     st.subheader("ตัวอย่างข้อมูล")
     st.dataframe(df.head(5), use_container_width=True)
     st.subheader("สถิติพื้นฐานของตัวแปรเชิงตัวเลข")
@@ -158,4 +159,3 @@ else:
 # --- Footer ---
 st.sidebar.markdown("---")
 st.sidebar.write("Developed with 💙 by Your Name")
-
