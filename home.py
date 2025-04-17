@@ -23,7 +23,7 @@ st.markdown("")
 st.markdown("")
 
 st.subheader("ข้อมูลส่วนสุดท้าย 10 แถว")
-dt = pd.read_csv("./data/mouse")
+dt = pd.read_csv("./data/mouse.csv")
 st.write(dt.head(10))
 st.subheader("ข้อมูลส่วนสุดท้าย 10 แถว")
 st.write(dt.tail(10))
