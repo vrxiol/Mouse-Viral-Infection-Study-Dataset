@@ -40,6 +40,7 @@ if 'infected' in df.columns:
     df['infected'] = df['infected'].astype(int)
 
 # --- Overview Page ---
+st.image('./img/1.jpg'
 if page == "Overview":
     st.title("ภาพรวมชุดข้อมูล Mouse Viral Infection")
     st.markdown(
