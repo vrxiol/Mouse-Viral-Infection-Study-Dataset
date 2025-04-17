@@ -40,24 +40,21 @@ if 'infected' in df.columns:
     df['infected'] = df['infected'].astype(int)
 
 # --- Overview Page ---
+st.image('./img/1.jpg')
 if page == "Overview":
     st.title("ภาพรวมชุดข้อมูล Mouse Viral Infection")
-    # --- รูปภาพประกบกัน (Side-by-Side Images) ---
-    col1, col2 = st.columns(2)
-    with col1:
-        st.image('./img/mouse_sample1.jpg', caption='Mouse Sample 1', use_column_width=True)
-    with col2:
-        st.image('./img/mouse_sample2.jpg', caption='Mouse Sample 2', use_column_width=True)
-
-    st.markdown(f"- จำนวนตัวอย่าง: **{df.shape[0]}** แถว")
-    st.markdown(f"- จำนวนคอลัมน์: **{df.shape[1]}**")
-
+    st.markdown(
+        f"- จำนวนตัวอย่าง: **{df.shape[0]}** แถว  \n"
+        f"- จำนวนคอลัมน์: **{df.shape[1]}**"
+    )
     st.subheader("ตัวอย่างข้อมูล")
     st.dataframe(df.head(5), use_container_width=True)
     st.subheader("สถิติพื้นฐานของตัวแปรเชิงตัวเลข")
     st.dataframe(df[numeric_cols].describe(), use_container_width=True)
     st.subheader("Missing Values ต่อคอลัมน์")
-    st.bar_chart(df.isnull().sum())# --- Expression Trends Page ---
+    st.bar_chart(df.isnull().sum())
+
+# --- Expression Trends Page ---
 elif page == "Expression Trends":
     st.title("แนวโน้มการแสดงออกของยีน")
     selected_cols = st.multiselect(
@@ -147,7 +144,7 @@ else:
     st.markdown(
         """
         **Mouse Viral Infection Study App**  
-        - พัฒนาโดย: Your Name  
+        - พัฒนาโดย: อนุสรณ์ เถาะปีนาม  
         - ชุดข้อมูล: mouse.csv  
         - เทคโนโลยี: Streamlit, pandas, numpy, scikit-learn, matplotlib  
         - เวอร์ชัน: 1.3.1
@@ -156,4 +153,5 @@ else:
 
 # --- Footer ---
 st.sidebar.markdown("---")
-st.sidebar.write("Developed with 💙 by Your Name")
+st.sidebar.write("Developed with 💙 อนุสรณ์ เถาะปีนาม")
+
