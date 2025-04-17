@@ -8,7 +8,7 @@ from sklearn.neighbors import KNeighborsClassifier
 st.title("🐷🐷🐷Website Developing using Python🐷🐷")
 st.header("🍖🍖Website Developing using Python🍖🍖")
 
-st.image('./ing/mayorma.jpg')
+st.image('./img/1.jpg')
 st.subheader("Dog")
 
 html_7 = """
