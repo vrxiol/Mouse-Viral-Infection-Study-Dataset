@@ -144,7 +144,7 @@ else:
     st.markdown(
         """
         **Mouse Viral Infection Study App**  
-        - พัฒนาโดย: Your Name  
+        - พัฒนาโดย: อนุสรณ์ เถาะปีนาม  
         - ชุดข้อมูล: mouse.csv  
         - เทคโนโลยี: Streamlit, pandas, numpy, scikit-learn, matplotlib  
         - เวอร์ชัน: 1.3.1
@@ -153,5 +153,5 @@ else:
 
 # --- Footer ---
 st.sidebar.markdown("---")
-st.sidebar.write("Developed with 💙 by Your Name")
+st.sidebar.write("Developed with 💙 อนุสรณ์ เถาะปีนาม")
 
