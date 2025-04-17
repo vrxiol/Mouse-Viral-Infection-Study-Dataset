@@ -25,12 +25,19 @@ page = st.sidebar.radio(
 # --- Load Data with Caching ---
 @st.cache_data
 def load_mouse_data(path):
-    return pd.read_csv(path)
+    df = pd.read_csv(path)
+    # Rename existing label column if needed
+    if 'Virus Present' in df.columns:
+        df.rename(columns={'Virus Present': 'infected'}, inplace=True)
+    return df
 
 df = load_mouse_data("./data/mouse.csv")
 
 # Identify numeric columns
 numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+# Ensure 'infected' is numeric
+if 'infected' in df.columns:
+    df['infected'] = df['infected'].astype(int)
 
 # --- Overview Page ---
 if page == "Overview":
@@ -85,12 +92,11 @@ elif page == "PCA & Clustering":
 elif page == "Infection Prediction":
     st.title("ทำนายการติดเชื้อไวรัส")
     st.markdown("ใช้ Logistic Regression ทำนายว่าหนูตัวอย่างติดเชื้อหรือไม่ จากตัวแปรเชิงตัวเลข")
-    # Ensure target exists
     if 'infected' not in df.columns:
-        st.error("ไม่มีคอลัมน์ 'infected' ในชุดข้อมูล กรุณาเพิ่มคอลัมน์ label ก่อน")
+        st.error("ไม่มีคอลัมน์ 'infected' ในชุดข้อมูล กรุณาตรวจสอบชื่อคอลัมน์หรือเพิ่มข้อมูล label ก่อน")
     else:
         # Prepare data
-        X = df[numeric_cols].fillna(0)
+        X = df[numeric_cols].drop(columns=['infected'], errors='ignore').fillna(0)
         y = df['infected']
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
         # Train model
@@ -108,7 +114,7 @@ elif page == "Infection Prediction":
         st.subheader("ทำนายตัวอย่างใหม่")
         user_inputs = {}
         cols_container = st.container()
-        for col in numeric_cols:
+        for col in X.columns:
             user_inputs[col] = cols_container.number_input(
                 f"{col}",
                 float(df[col].min()), float(df[col].max()), float(df[col].median())
@@ -140,11 +146,11 @@ else:
         - พัฒนาโดย: Your Name  
         - ชุดข้อมูล: mouse.csv  
         - เทคโนโลยี: Streamlit, pandas, numpy, scikit-learn, matplotlib  
-        - เวอร์ชัน: 1.3.0
+        - เวอร์ชัน: 1.3.1
         """
     )
 
 # --- Footer ---
 st.sidebar.markdown("---")
-st.sidebar.write("Developed with 💙 อนุสรณ์ เถาะปีนาม")
+st.sidebar.write("Developed with 💙 by Your Name")
 
